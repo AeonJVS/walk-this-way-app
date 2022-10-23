@@ -1,9 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, TextInput, View, Button, FlatList } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableHighlight } from 'react-native';
 import { AsyncStorage } from'@react-native-async-storage/async-storage';
 import * as SQLite from'expo-sqlite';
+
+import { Header, Icon, Input, ListItem, Button } from'react-native-elements';
+
+
 
 const db = SQLite.openDatabase('coursedb.db');
 
@@ -39,49 +43,56 @@ export default function App() {
   const deleteItem = (id) => {
     db.transaction(
       tx => {
-        tx.executeSql(`delete from buy where id = ?;`, [id]);
+        tx.executeSql('delete from buy where id = ?;', [id]);
       }, null, updateList
     )    
   }
 
-  const listSeparator = () => {
-    return (
-      <View
-        style={{
-          height: 5,
-          width: "80%",
-          backgroundColor: "#fff",
-          marginLeft: "20%"
-        }}
-      />
-    );
-  };
+
 
   return (
     <View style={styles.container}>
 
-      <TextInput placeholder='Product' style={{marginTop: 30, fontSize: 18, width: 200, borderColor: 'gray', borderWidth: 1}}
-        onChangeText={(product) => setProduct(product)}
-        value={product}/>
+      <Header  
+          leftComponent={{ icon: 'menu', color: 'white' }}  
+          centerComponent={{ text: 'SHOPPING LIST', style: { color: 'white' } }}  
+          rightComponent={{ icon: 'home', color: 'white'}}/>
 
-      <TextInput placeholder='Amount' style={{ marginTop: 5, marginBottom: 5,  fontSize:18, width: 200, borderColor: 'gray', borderWidth: 1}}
-        onChangeText={(amount) => setAmount(amount)}
-        value={amount}/>
+      <Input   
+        placeholder='Product' 
+        label='PRODUCT'  
+        onChangeText={product => setProduct(product)} 
+        value={product} />
 
-      <Button onPress={saveItem} title="Save" /> 
+      <Input   
+        placeholder='Amount' 
+        label='AMOUNT'  
+        onChangeText={amount => setAmount(amount)} 
+        value={amount} />
+
+      <TouchableHighlight underlayColor={'#2196F3'} onPress={saveItem}>
+        <View style={styles.button}>
+          <Icon type="material" color='white' name="save" />
+          <Text style={{ color: 'white' }}>  Save</Text>
+        </View>
+      </TouchableHighlight>
 
       <Text style={{marginTop: 30, fontSize: 20}}>Shopping list</Text>
 
-      <FlatList 
-        keyExtractor={item => item.id.toString()} 
-        renderItem={({item}) => 
-          <View style={styles.listcontainer}>
-            <Text style={{fontSize: 18}}>{item.product}, {item.amount}</Text>
-            <Text style={{fontSize: 18, color: '#0000ff'}} onPress={() => deleteItem(item.id)}>  bought</Text>
-          </View>} 
-        data={buys} 
-        ItemSeparatorComponent={listSeparator} 
-      />    
+      <View style={styles.listcontainer}>
+        <FlatList 
+          data={buys} 
+          renderItem = {({ item }) => (
+            <ListItem bottomDivider>
+              <ListItem.Content>
+                <ListItem.Title>{item.product}</ListItem.Title>
+                <ListItem.Subtitle>{item.amount}</ListItem.Subtitle>
+              </ListItem.Content>
+              <Button type='clear' icon={{name: 'delete', color: 'red'}} onPress={() => {deleteItem(item.id)}} />
+            </ListItem>)}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      </View>
     </View>
   );
 }
@@ -93,10 +104,22 @@ const styles = StyleSheet.create({
    alignItems: 'center',
    justifyContent: 'center',
   },
-
+  
   listcontainer: {
+   flex: 1,
    flexDirection: 'row',
    backgroundColor: '#fff',
-   alignItems: 'center'
   },
+
+  button: {
+    flexDirection: 'row',
+    backgroundColor: '#6CB7F4',
+    alignItems: 'center',
+    paddingTop: 5,
+    paddingBottom: 5,
+    paddingLeft: 40,
+    paddingRight: 40,
+    borderRadius: 10,
+    borderWidth: 0,
+   },
  });
